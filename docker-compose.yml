@@ -1,0 +1,19 @@
+services:
+  web:
+    build: .
+    container_name: excelsior-u11
+    restart: unless-stopped
+    # Alleen poort 5173: Cloudflare tunnel (mariaburg.levelx.be) wijst hiernaar.
+    # Geen 80/443/300x — die zijn al in gebruik door andere containers.
+    ports:
+      - "5173:80"
+    volumes:
+      - excelsior_u11_data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+volumes:
+  excelsior_u11_data:
