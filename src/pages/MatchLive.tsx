@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CLUB_NAME, CLUB_SHORT } from '../club';
+import { GoalCelebration, OpponentGoalNotice } from '../components/GoalCelebration';
 import { GoalModal } from '../components/GoalModal';
 import { getScoreboard } from '../matchDisplay';
 import {
@@ -14,6 +15,7 @@ import {
   undoLastGoal,
 } from '../store';
 import { publishLiveMatch, spectatorUrl } from '../sync';
+import { useGoalAlerts } from '../useGoalAlerts';
 import { useAppStore } from '../useAppStore';
 
 const DOUBLE_TAP_MS = 400;
@@ -64,6 +66,11 @@ export function MatchLive() {
   useEffect(() => {
     if (match) void publishLiveMatch(match, players);
   }, [match?.id]);
+
+  const { celebration, notice, dismissCelebration, dismissNotice } = useGoalAlerts(
+    match?.id,
+    match?.goals,
+  );
 
   const playerName = useMemo(() => {
     const map = new Map(players.map((p) => [p.id, p.name]));
@@ -312,6 +319,19 @@ export function MatchLive() {
           teamLabel={goalTeam === 'home' ? CLUB_NAME : match.opponent}
           onClose={() => setGoalTeam(null)}
         />
+      )}
+
+      {celebration && (
+        <GoalCelebration
+          key={celebration.id}
+          goal={celebration}
+          match={match}
+          players={players}
+          onClose={dismissCelebration}
+        />
+      )}
+      {!celebration && notice && (
+        <OpponentGoalNotice key={notice.id} match={match} onClose={dismissNotice} />
       )}
     </div>
   );
