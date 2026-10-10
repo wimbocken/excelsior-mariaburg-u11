@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CLUB_NAME } from '../club';
+import { GoalCelebration, OpponentGoalNotice } from '../components/GoalCelebration';
 import { fetchLiveMatch, type PublicLivePayload } from '../sync';
+import { useGoalAlerts } from '../useGoalAlerts';
 import { formatTime } from '../store';
 import { getScoreboard } from '../matchDisplay';
 import { getMatchElapsedSeconds } from '../time';
@@ -41,6 +43,11 @@ export function Spectator() {
     const t = window.setInterval(() => setTick((n) => n + 1), 1000);
     return () => window.clearInterval(t);
   }, [payload?.match.periodRunning, payload?.match.status, payload?.updatedAt]);
+
+  const { celebration, notice, dismissCelebration, dismissNotice } = useGoalAlerts(
+    id,
+    payload?.match.goals,
+  );
 
   const playerName = useMemo(() => {
     const map = new Map((payload?.players ?? []).map((p) => [p.id, p.name]));
@@ -166,6 +173,19 @@ export function Spectator() {
             );
           })}
         </div>
+
+        {celebration && (
+          <GoalCelebration
+            key={celebration.id}
+            goal={celebration}
+            match={match}
+            players={payload.players}
+            onClose={dismissCelebration}
+          />
+        )}
+        {!celebration && notice && (
+          <OpponentGoalNotice key={notice.id} match={match} onClose={dismissNotice} />
+        )}
       </div>
     </div>
   );
